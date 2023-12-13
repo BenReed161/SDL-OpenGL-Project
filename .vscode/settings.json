@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "glext.h": "c",
+        "sdl_timer.h": "c"
+    }
+}
