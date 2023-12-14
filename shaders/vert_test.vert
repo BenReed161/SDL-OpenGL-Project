@@ -1,5 +1,9 @@
-#version 140
-in vec2 LVertexPos2D; 
-void main() { 
-    gl_Position = vec4( LVertexPos2D.x, LVertexPos2D.y, 0, 1 ); 
+#version 330 core
+
+uniform mat4 model;
+uniform mat4 view;
+uniform mat4 projection;
+
+void main() {
+    gl_Position = projection * view * model * vec4(1,1,1,1);
 }
