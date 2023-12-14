@@ -377,6 +377,14 @@ int main(int argc, char *argv[]){
 // Sources :
 // https://lazyfoo.net/tutorials/SDL/51_SDL_and_modern_opengl/index.php
 
+// https://learnopengl.com/Getting-started/Camera
+
+// https://lazyfoo.net/tutorials/OpenGL/36_vertex_array_objects/index.php
+
+// https://lazyfoo.net/tutorials/SDL/51_SDL_and_modern_opengl/index.php
+
+// https://www.khronos.org/opengl/wiki/Tutorial2:_VAOs,_VBOs,_Vertex_and_Fragment_Shaders_(C_/_SDL)
+
 // Ideas :
 // https://www.khronos.org/opengl/wiki/VBO_-_just_examples
 // https://openglbook.com/chapter-3-index-buffer-objects-and-primitive-types.html
