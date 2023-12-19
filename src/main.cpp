@@ -4,6 +4,7 @@
 #include <SDL2/SDL_opengl.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <GL/glu.h>
 #include <GL/glut.h>
 
@@ -16,16 +17,14 @@ int W_WIDTH = 750;
 
 
 glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.f);
-glm::vec3 cameraFront = glm::vec3(0.f, 0.f, -1.f);
+glm::vec3 cameraFront = glm::vec3(0.f, 0.f, 0.f);
 glm::vec3 cameraUp = glm::vec3(0.f, 1.f, 0.f);
 
 
 GLuint gProgramID = 0;
-GLuint gVertexShader = 0;
-GLuint gFragmentShader = 0;
 GLuint gVertexPos2DLocation = -1;
 GLuint gVBO = 0;
-GLuint gIBO = 0;
+GLuint gVAO = 0;
 
 char * readfromFile(char * name) {
     FILE * fileptr;
@@ -117,25 +116,26 @@ void render()
 {
     
     //Clear color buffer
-    glClear( GL_COLOR_BUFFER_BIT );
+    //glClear( GL_COLOR_BUFFER_BIT );
     
-    //Render quad
-    //Bind program
-    glUseProgram( gProgramID );
+    // Bind the program
+    glUseProgram(gProgramID);
 
-    //Enable vertex position
-    glEnableVertexAttribArray( gVertexPos2DLocation );
+    glm::mat4 view = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
+    float radius = 10.0f;
+    float camX = static_cast<float>(sin(SDL_GetTicks64()) * radius);
+    float camZ = static_cast<float>(cos(SDL_GetTicks64()) * radius);
+    view = glm::lookAt(glm::vec3(camX, 0.0f, camZ), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    glUniformMatrix4fv(glGetUniformLocation(gProgramID, "view\0"), 1, GL_FALSE, glm::value_ptr(view));
+    //printf("view : %d\n", glGetUniformLocation(gProgramID, "view\0"));
 
-    //Set vertex data
-    glBindBuffer( GL_ARRAY_BUFFER, gVBO );
-    glVertexAttribPointer( gVertexPos2DLocation, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), NULL );
+    glBindVertexArray(gVAO);
 
-    //Set index data and render
-    glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, gIBO );
-    glDrawElements( GL_TRIANGLE_FAN, 4, GL_UNSIGNED_INT, NULL );
+    glm::mat4 model = glm::mat4(1.0f);
+    glUniformMatrix4fv(glGetUniformLocation(gProgramID, "model\0"), 1, GL_FALSE, glm::value_ptr(model));
+    //printf("model : %d\n", glGetUniformLocation(gProgramID, "model\0"));
 
-    //Disable vertex position
-    glDisableVertexAttribArray( gVertexPos2DLocation );
+    glDrawArrays(GL_TRIANGLES, 0, 36);
 
     //Unbind program
     glUseProgram( 0x0 );
@@ -146,39 +146,42 @@ int initGL()
 {
     //Success flag
     int success = 1;
+    
+    GLuint VertexShader = 0;
+    GLuint FragmentShader = 0;
 
     //Generate program
     gProgramID = glCreateProgram();
    //Create vertex shader
-    gVertexShader = glCreateShader( GL_VERTEX_SHADER );
+    VertexShader = glCreateShader( GL_VERTEX_SHADER );
 
     //Get vertex source
     char s[] = "./shaders/vert_test.vert";
     char * file = readfromFile(s);
     const GLchar* vertexShaderSource[] = {file};
     //Set vertex source
-    glShaderSource( gVertexShader, 1, vertexShaderSource, NULL );
+    glShaderSource( VertexShader, 1, vertexShaderSource, NULL );
     delete [] file; // Free the memory associated with the opened file.
     //Compile vertex source
-    glCompileShader( gVertexShader );
+    glCompileShader( VertexShader );
 
     //Check vertex shader for errors
     GLint vShaderCompiled = GL_FALSE;
-    glGetShaderiv( gVertexShader, GL_COMPILE_STATUS, &vShaderCompiled );
+    glGetShaderiv( VertexShader, GL_COMPILE_STATUS, &vShaderCompiled );
     if( vShaderCompiled != GL_TRUE )
     {
-        printf( "Unable to compile vertex shader %d!\n", gVertexShader );
-        printShaderLog( gVertexShader );
+        printf( "Unable to compile vertex shader %d!\n", VertexShader );
+        printShaderLog( VertexShader );
         success = 0;
     }
     else
     {
         //Attach vertex shader to program
-        glAttachShader( gProgramID, gVertexShader );
+        glAttachShader( gProgramID, VertexShader );
 
 
         //Create fragment shader
-        gFragmentShader = glCreateShader( GL_FRAGMENT_SHADER );
+        FragmentShader = glCreateShader( GL_FRAGMENT_SHADER );
 
         //Get fragment source
         char s1[] = "./shaders/frag_test.frag";
@@ -186,25 +189,25 @@ int initGL()
         const GLchar* fragmentShaderSource[] = {file};
 
         //Set fragment source
-        glShaderSource( gFragmentShader, 1, fragmentShaderSource, NULL );
+        glShaderSource( FragmentShader, 1, fragmentShaderSource, NULL );
         delete [] file; // Free the memory associated with the opened file.
 
         //Compile fragment source
-        glCompileShader( gFragmentShader );
+        glCompileShader( FragmentShader );
 
         //Check fragment shader for errors
         GLint fShaderCompiled = GL_FALSE;
-        glGetShaderiv( gFragmentShader, GL_COMPILE_STATUS, &fShaderCompiled );
+        glGetShaderiv( FragmentShader, GL_COMPILE_STATUS, &fShaderCompiled );
         if( fShaderCompiled != GL_TRUE )
         {
-            printf( "Unable to compile fragment shader %d!\n", gFragmentShader );
-            printShaderLog( gFragmentShader );
+            printf( "Unable to compile fragment shader %d!\n", FragmentShader );
+            printShaderLog( FragmentShader );
             success = 0;
         }
         else
         {
             //Attach fragment shader to program
-            glAttachShader( gProgramID, gFragmentShader );
+            glAttachShader( gProgramID, FragmentShader );
 
 
             //Link program
@@ -221,42 +224,29 @@ int initGL()
             }
             else
             {
-                //Get vertex attribute location
-                //gVertexPos2DLocation = glGetAttribLocation( gProgramID, "LVertexPos2D" );
-                //if( gVertexPos2DLocation == -1 )
-                //{
-                //    printf( "LVertexPos2D is not a valid glsl program variable!\n" );
-                //    success = 0;
-                //}
-                //else
-                //{
-                    //Initialize clear color
-                    glClearColor( 0.f, 0.f, 0.f, 1.f );
+                //Initialize clear color
+                //glClearColor( 0.f, 0.f, 0.f, 1.f );
 
-                    //VBO data
-                    GLfloat vertexData[] =
-                    {
-                        // front
-                        -0.5f, -0.5f,
-                         0.5f, -0.5f,
-                         0.5f,  0.5f,
-                        -0.5f,  0.5f,
-                        // left
-                    };
-                    
-                    //IBO data
-                    GLuint indexData[] = { 0, 1, 2, 3};
+                //VBO data
+                float vertexData[] =
+                {
+                    -0.5f, -0.5f, -0.5f,
+                    0.5f, -0.5f, -0.5f,
+                    0.5f,  0.5f, -0.5f,
+                    0.5f,  0.5f, -0.5f,
+                    -0.5f,  0.5f, -0.5f,
+                    -0.5f, -0.5f, -0.5f,
+                };
+                glGenVertexArrays(1, &gVAO);
+                glGenBuffers(1, &gVBO);
 
-                    //Create VBO
-                    glGenBuffers( 1, &gVBO );
-                    glBindBuffer( GL_ARRAY_BUFFER, gVBO );
-                    glBufferData( GL_ARRAY_BUFFER, 2 * 4 * sizeof(GLfloat), vertexData, GL_STATIC_DRAW );
+                glBindVertexArray(gVAO);
 
-                    //Create IBO
-                    glGenBuffers( 1, &gIBO );
-                    glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, gIBO );
-                    glBufferData( GL_ELEMENT_ARRAY_BUFFER, 4 * sizeof(GLuint), indexData, GL_STATIC_DRAW );
-                //}
+                glBindBuffer(GL_ARRAY_BUFFER, gVBO);
+                glBufferData(GL_ARRAY_BUFFER, sizeof(vertexData), vertexData, GL_STATIC_DRAW);
+
+                glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (void*)0 );
+                glEnableVertexAttribArray(0);
             }
         }
     }
@@ -276,14 +266,14 @@ int main(int argc, char *argv[]){
     }
    
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
     SDL_GL_SetAttribute( SDL_GL_CONTEXT_PROFILE_MASK, 
             SDL_GL_CONTEXT_PROFILE_CORE );
 
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
-    mainwindow = SDL_CreateWindow("sdl", SDL_WINDOWPOS_CENTERED, 
+    mainwindow = SDL_CreateWindow("SDL2 & OpenGL 3.3", SDL_WINDOWPOS_CENTERED, 
     SDL_WINDOWPOS_CENTERED, W_WIDTH, W_HEIGHT, 
     SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
     
@@ -306,6 +296,8 @@ int main(int argc, char *argv[]){
             return 1;
         }
 
+        glEnable(GL_DEPTH_TEST);
+
         //Init OpenGL
         if( !initGL() ) {
             printf( "Unable to initialize OpenGL\n" );
@@ -315,23 +307,22 @@ int main(int argc, char *argv[]){
 
     //VSYNC
     SDL_GL_SetSwapInterval(1);
-    SDL_SetRelativeMouseMode(SDL_TRUE);
+    //SDL_SetRelativeMouseMode(SDL_TRUE);
+
+    glUseProgram(gProgramID);
 
     glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)W_WIDTH / (float)W_HEIGHT, 0.1f, 100.0f);
-    glUniformMatrix4fv(glGetUniformLocation(gVertexShader, "projection"), 1, GL_FALSE, &projection[0][0]);
+    //glBindAttribLocation(gProgramID, )
+    glUniformMatrix4fv(glGetUniformLocation(gProgramID, "projection\0"), 1, GL_FALSE, glm::value_ptr(projection));
+    printf("projection : %d\n", glGetUniformLocation(gProgramID, "projection\0"));
+
+    glUseProgram(0x0);
     
     int running = 1;
     while (running){
         // Main loop
         
         SDL_Event event;
-
-        glm::mat4 view = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
-        float radius = 10.0f;
-        float camX = static_cast<float>(sin(SDL_GetTicks64()) * radius);
-        float camZ = static_cast<float>(cos(SDL_GetTicks64()) * radius);
-        view = glm::lookAt(glm::vec3(camX, 0.0f, camZ), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        glUniformMatrix4fv(glGetUniformLocation(gVertexShader, "view"), 1, GL_FALSE, &view[0][0]);
 
         while (SDL_PollEvent(&event)){
         // Event handler loop - keyboard - exit
@@ -363,6 +354,10 @@ int main(int argc, char *argv[]){
 
             }
         }
+
+        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
+        
         render();
         SDL_GL_SwapWindow(mainwindow);
     }
