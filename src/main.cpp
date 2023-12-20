@@ -10,18 +10,26 @@
 #include <iostream>
 
 void pollEvent(SDL_Event &, int &);
+void mouseEvent(void);
 
 // settings
 const unsigned int W_WIDTH = 800;
 const unsigned int W_HEIGHT = 600;
 unsigned int gProgram = 0;
 unsigned int VBO, VAO = 0;
-float deltaTime = 0.0f;
-float lastFrame = 0.0f;
 
 glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+
+float yaw = -90.0f;
+float pitch = 0.0f;
+float lastX = W_WIDTH / 2.0;
+float lastY = W_HEIGHT / 2.0;
+float fov = 45.0;
+
+float deltaTime = 0.0f;
+float lastFrame = 0.0f;
 /*
 const char *vtexShaderSource ="#version 330 core\n"
     "layout (location = 0) in vec3 aPos;\n"
@@ -116,6 +124,8 @@ int main()
         printf( "Error initializing GLEW OPENGL ERR : %s\n", glewGetErrorString( glewError ) );
         return 1;
     }
+
+    //SDL_SetRelativeMouseMode(SDL_TRUE);
 
     //glEnable(GL_DEPTH_TEST);
 
@@ -245,6 +255,7 @@ int main()
     int running = 1;
     while (running){
         // Main loop
+        //SDL_WarpMouseInWindow(mainwindow, W_WIDTH/2, W_HEIGHT/2);
         float currFrame = static_cast<float>(((float)SDL_GetTicks64())/1000);
         deltaTime = currFrame - lastFrame;
         lastFrame = currFrame;
@@ -252,7 +263,8 @@ int main()
         SDL_Event event;
 
         pollEvent(event, running);
-
+        mouseEvent();
+        //mouseEvent();
         // render
         // ------
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -317,4 +329,35 @@ void pollEvent(SDL_Event & event, int & running) {
     cameraPos += (kb[SDL_SCANCODE_D] * cameraSpeed * normal) - (kb[SDL_SCANCODE_A] * cameraSpeed * normal);// - (kb[SDL_SCANCODE_A] * normal * cameraSpeed);
 }
 
+void mouseEvent(void) {
+    int xpos = 0;
+    int ypos = 0;
+    SDL_GetMouseState(&xpos, &ypos);
+    if (xpos == lastX && ypos == lastY) { // no mouse movments detected
+        return;
+    }
+
+    float xoffset = xpos - lastX;
+    float yoffset = lastY - ypos;
+    lastX = xpos;
+    lastY = ypos;
+
+    float sense = 0.1f;
+    xoffset *= sense;
+    yoffset *= sense;
+
+    yaw += xoffset;
+    pitch += yoffset;
+
+    if (pitch > 89.0f)
+        pitch = 89.0f;
+    if (pitch < -89.0f)
+        pitch = -89.0f;
+
+    glm::vec3 front;
+    front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+    front.y = sin(glm::radians(pitch));
+    front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+    cameraFront = glm::normalize(front);
+}
 //g++ -o shaders ./shaders_interpolation.cpp -lGL -lGLU -lglfw -lGLEW
