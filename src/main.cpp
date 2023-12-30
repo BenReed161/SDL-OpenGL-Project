@@ -12,9 +12,8 @@
 void pollEvent(SDL_Event &, int &);
 void mouseEvent(void);
 
-// settings
-const unsigned int W_WIDTH = 800;
-const unsigned int W_HEIGHT = 600;
+unsigned int W_WIDTH = 800;
+unsigned int W_HEIGHT = 600;
 unsigned int gProgram = 0;
 unsigned int VBO, VAO = 0;
 
@@ -30,29 +29,9 @@ float fov = 45.0;
 
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
-/*
-const char *vtexShaderSource ="#version 330 core\n"
-    "layout (location = 0) in vec3 aPos;\n"
-    "layout (location = 1) in vec3 aColor;\n"
-    "out vec3 ourColor;\n"
-    "uniform mat4 model;\n"
-    "uniform mat4 view;\n"
-    "uniform mat4 projection;\n"
-    "void main()\n"
-    "{\n"
-    "   gl_Position = projection * view * model * vec4(aPos, 1.0f);\n"
-    "   ourColor = aColor;\n"
-    "}\0";
 
-const char *fmentShaderSource = "#version 330 core\n"
-    "out vec4 FragColor;\n"
-    "in vec3 ourColor;\n"
-    "void main()\n"
-    "{\n"
-    "   FragColor = vec4(ourColor, 1.0f);\n"
-    "}\n\0";
-
-*/
+SDL_Window *mainwindow;
+SDL_GLContext maincontext;
 
 char * readfromFile(char * name) {
     FILE * fileptr;
@@ -81,13 +60,7 @@ char * readfromFile(char * name) {
 }
 
 int main()
-{
-    // glfw: initialize and configure
-    // ------------------------------
-    SDL_Window *mainwindow;
-    SDL_GLContext maincontext;
-    
-    
+{   
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
         printf("error initializing SDL: %s\n", SDL_GetError());
         return 1;
@@ -264,9 +237,7 @@ int main()
 
         pollEvent(event, running);
         mouseEvent();
-        //mouseEvent();
-        // render
-        // ------
+
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT);
         
@@ -319,6 +290,23 @@ void pollEvent(SDL_Event & event, int & running) {
                     }
                 }
             }
+            
+            default:
+                break;
+        }
+        switch (event.window.event) 
+        {
+            case SDL_WINDOWEVENT_RESIZED:
+            {
+                SDL_SetWindowSize(mainwindow, event.window.data1, event.window.data2);
+                W_WIDTH = event.window.data1;
+                W_HEIGHT = event.window.data2;
+                glViewport(0,0,W_WIDTH, W_HEIGHT);
+                break;
+            }
+            
+            default:
+                break;
         }
     }
     float cameraSpeed = static_cast<float>(2.5 * deltaTime);
