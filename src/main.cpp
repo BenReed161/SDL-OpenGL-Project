@@ -2,7 +2,6 @@
 #include <SDL2/SDL_timer.h>
 #include <GL/glew.h>
 #include <SDL2/SDL_opengl.h>
-#include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -34,28 +33,52 @@ SDL_Window *mainwindow;
 SDL_GLContext maincontext;
 
 char * readfromFile(char * name) {
+    /*
+    
     FILE * fileptr;
     fileptr = fopen(name, "r");
     if (!fileptr) {
         printf("ERR : Attempting to read file name %s File does not exist.\n", name);
-        
         exit(1);
     }
-    fseek(fileptr, 0L, SEEK_END);
+    fseek(fileptr, 0, SEEK_END);
     
-    int size = ftell(fileptr) + 1;
+    int size = ftell(fileptr);
     
-    //rewind(fileptr);
-    fclose(fileptr);
-    fileptr = fopen(name, "r");
+    rewind(fileptr);
+    //fclose(fileptr);
+    //fileptr = fopen(name, "r");
 
     char * str = new char[ size ];
     
     fread(str, 1, size, fileptr);
     fclose(fileptr);
     
-    //printf("%s", str);
-    strcat(str, "\n\0");
+    //
+    strcat(str, "\0");
+    printf("%s\n", str);
+    return str;
+    */
+    FILE* fileptr = fopen(name, "r");
+    if (!fileptr) {
+        printf("ERR : Attempting to read file name %s File does not exist.\n", name);
+        exit(1);
+    }
+    // Determine file size
+    if((fseek(fileptr, 0, SEEK_END))) {
+        printf("ERR : Failed to seek into file %s\n", name);
+        exit(1);
+    }
+    size_t size = ftell(fileptr);
+
+    char* str = new char[size];
+
+    rewind(fileptr);
+    fread(str, sizeof(char), size, fileptr);
+    fclose(fileptr);
+    
+    printf("%s\n", str);
+    //strcat(str, "\0");
     return str;
 }
 
@@ -98,11 +121,11 @@ int main()
         return 1;
     }
 
-    //SDL_SetRelativeMouseMode(SDL_TRUE);
+    SDL_SetRelativeMouseMode(SDL_TRUE);
 
     //glEnable(GL_DEPTH_TEST);
 
-    char s[] = "./shaders/vert_test.vert";
+    char s[] = "./shaders/prog_vertex.vert";
     char * file = readfromFile(s);
     const GLchar* vertexShaderSource[] = {file};
 
@@ -120,7 +143,7 @@ int main()
     }
     delete file;
     // fragment shader
-    char s1[] = "./shaders/frag_test.frag";
+    char s1[] = "./shaders/prog_fragment.frag";
     file = readfromFile(s1);
     const GLchar* fragmentShaderSource[] = {file};
 
