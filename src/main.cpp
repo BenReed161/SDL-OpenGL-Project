@@ -1,18 +1,24 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_timer.h>
+#include <SDL2/SDL_ttf.h>
+
 #include <GL/glew.h>
+
 #include <SDL2/SDL_opengl.h>
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
 #include <iostream>
 
+#define NUMBEROFOBJS = 2;
+
 void pollEvent(SDL_Event &, int &);
 void mouseEvent(void);
 
-unsigned int W_WIDTH = 800;
-unsigned int W_HEIGHT = 600;
+unsigned int W_WIDTH = 1200;
+unsigned int W_HEIGHT = 800;
 unsigned int gProgram = 0;
 unsigned int VBO, VAO = 0;
 
@@ -31,6 +37,7 @@ float lastFrame = 0.0f;
 
 SDL_Window *mainwindow;
 SDL_GLContext maincontext;
+//SDL_Renderer *renderer;
 
 char * readfromFile(char * name) {
     /*
@@ -82,6 +89,34 @@ char * readfromFile(char * name) {
     return str;
 }
 
+/*
+void render_text(
+    SDL_Renderer * renderer,
+    int x,
+    int y, 
+    const char * text,
+    TTF_Font * font,
+    SDL_Rect * rect,
+    SDL_Color * color
+) {
+    SDL_Surface * surface;
+    SDL_Texture * texture;
+
+    surface = TTF_RenderText_Solid(font, text, *color);
+    texture = SDL_CreateTextureFromSurface(renderer, surface);
+    rect->x = x;
+    rect->y = y;
+    rect->w = surface->w;
+    rect->h = surface->h;
+
+    SDL_FreeSurface(surface);
+    SDL_RenderCopy(renderer, texture, NULL, rect);
+    SDL_DestroyTexture(texture);
+}*/
+/* This is wasteful for textures that stay the same.
+    * But makes things less stateful and easier to use.
+    * Not going to code an atlas solution here... are we? */
+
 int main()
 {   
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
@@ -99,7 +134,7 @@ int main()
 
     mainwindow = SDL_CreateWindow("SDL2 & OpenGL 3.3", SDL_WINDOWPOS_CENTERED, 
     SDL_WINDOWPOS_CENTERED, W_WIDTH, W_HEIGHT, 
-    SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
+    SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
     
     if (!mainwindow) {
         printf("error creating the main window SDL ERR : %s\n", SDL_GetError());
@@ -176,11 +211,6 @@ int main()
     // ------------------------------------------------------------------
     float vertices[] = {
         // positions         // colors
-        /*
-         0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,  // bottom right
-        -0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,  // bottom left
-         0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f,   // top 
-        */
         -0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
          0.5f, -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 
          0.5f,  0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 
@@ -214,16 +244,12 @@ int main()
          0.5f, -0.5f,  0.5f, 0.0f, 0.0f, 1.0f,
          0.5f, -0.5f,  0.5f, 1.0f, 0.0f, 0.0f,
         -0.5f, -0.5f,  0.5f, 0.0f, 1.0f, 0.0f,
-        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 1.0f,
-
-        -0.5f,  0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
-         0.5f,  0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
-         0.5f,  0.5f,  0.5f, 0.0f, 0.0f, 1.0f,
-         0.5f,  0.5f,  0.5f, 1.0f, 0.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f, 0.0f, 1.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f, 0.0f, 0.0f, 1.0f
+        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 1.0f
     };
-
+    glm::vec3 positions[] = {
+        glm::vec3( 0.0f, 0.0f, 0.0f ),
+        glm::vec3( 0.0f, 0.0f, 3.0f )
+    };
     
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -232,6 +258,7 @@ int main()
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    //glBufferData(GL_ARRAY_BUFFER, sizeof(vertices2), vertices2, GL_STATIC_DRAW);
 
     // position attribute
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
@@ -248,10 +275,25 @@ int main()
     glUniformMatrix4fv(glGetUniformLocation(gProgram, "projection\0"), 1, GL_FALSE, glm::value_ptr(projection));
     //printf("projection : %d\n", glGetUniformLocation(gProgram, "projection\0"));
 
+    /*
+    TTF_Init();
+    TTF_Font *font = TTF_OpenFont("mono.ttf", 24);
+    if (font == NULL) {
+        printf("ERR : font not found\n");
+        exit(1);
+    }
+    */
+
     int running = 1;
     while (running){
+        //SDL_Color color; https://stackoverflow.com/questions/22886500/how-to-render-text-in-sdl2
+        //color.r = 255;
+        //color.g = 255;
+        //color.b = 255;
+        //color.a = 255;
+        //SDL_Rect rect;
+        
         // Main loop
-        //SDL_WarpMouseInWindow(mainwindow, W_WIDTH/2, W_HEIGHT/2);
         float currFrame = static_cast<float>(((float)SDL_GetTicks64())/1000);
         deltaTime = currFrame - lastFrame;
         lastFrame = currFrame;
@@ -261,6 +303,10 @@ int main()
         pollEvent(event, running);
         mouseEvent();
 
+        //SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+        //SDL_RenderClear(renderer);
+        //render_text(renderer, 0, 0, "FPS: ", font, &rect, &color);
+
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT);
         
@@ -269,12 +315,29 @@ int main()
         glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
         glUniformMatrix4fv(glGetUniformLocation(gProgram, "view\0"), 1, GL_FALSE, glm::value_ptr(view));
 
-        // render the triangle
+        
         glBindVertexArray(VAO);
-
+        // render the static cubes
         glm::mat4 model = glm::mat4(1.0f);
         glUniformMatrix4fv(glGetUniformLocation(gProgram, "model\0"), 1, GL_FALSE, glm::value_ptr(model));
         glDrawArrays(GL_TRIANGLES, 0, 36);
+        
+        glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+        // render the moving cubes
+        for (unsigned int i = 0; i < 1; i++) {
+            glm::mat4 model = glm::mat4(1.0f);
+            model = glm::translate(model, cameraPos);
+
+            model = glm::rotate(model, cameraFront.x * -1, cameraUp);
+            model = glm::rotate(model, cameraFront.y, glm::vec3(1,0,0));
+
+            glUniformMatrix4fv(glGetUniformLocation(gProgram, "model\0"), 1, GL_FALSE, glm::value_ptr(model));
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
+        glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+        //printf("x: %f\n", cameraUp.x);
+        //printf("y: %f\n", cameraUp.y);
+        //printf("z: %f\n\n", cameraUp.z);
 
         SDL_GL_SwapWindow(mainwindow);
     }
