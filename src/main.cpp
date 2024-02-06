@@ -11,6 +11,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "../include/shader.h"
+#include "../include/events.h"
 
 #include <iostream>
 
@@ -23,21 +24,7 @@ unsigned int W_WIDTH = 1200;
 unsigned int W_HEIGHT = 800;
 unsigned int VBO, VAO = 0;
 
-glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
-glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
-glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
-
-float yaw = -90.0f;
-float pitch = 0.0f;
-float lastX = W_WIDTH / 2.0;
-float lastY = W_HEIGHT / 2.0;
-float fov = 45.0;
-
-float deltaTime = 0.0f;
 float lastFrame = 0.0f;
-
-// for the camera / player pov
-int speed = 1;
 
 SDL_Window *mainwindow;
 SDL_GLContext maincontext;
@@ -148,42 +135,22 @@ int main()
     glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)W_WIDTH / (float)W_HEIGHT, 0.1f, 100.0f);
     mainShader.setMat4("projection", projection);
 
-    // Font init for SDL2
-    /*
-    TTF_Init();
-    TTF_Font *font = TTF_OpenFont("mono.ttf", 24);
-    if (font == NULL) {
-        printf("ERR : font not found\n");
-        exit(1);
-    }
-    */
+    SDL_Event event;
+    
+    events eventSystem(event, mainwindow);
 
-    glm::vec3 blounding_box_max = glm::vec3(cameraPos.x+0.5f, cameraPos.y+0.5f, cameraPos.z+0.5f);
-    glm::vec3 blounding_box_min = glm::vec3(cameraPos.x-0.5f, cameraPos.y-0.5f, cameraPos.z-0.5f);
-
-    int running = 1;
-    while (running){
+    while (eventSystem.running){
+        //?
         //SDL_Color color; https://stackoverflow.com/questions/22886500/how-to-render-text-in-sdl2
-        //color.r = 255;
-        //color.g = 255;
-        //color.b = 255;
-        //color.a = 255;
-        //SDL_Rect rect;
-        //SDL_WarpMouseInWindow(SDL_Window * window, int x, int y);
         
         // Main loop
         float currFrame = static_cast<float>(((float)SDL_GetTicks64())/1000);
-        deltaTime = currFrame - lastFrame;
+        eventSystem.deltaTime = currFrame - lastFrame;
         lastFrame = currFrame;
-        
-        SDL_Event event;
 
-        pollEvent(event, running);
-        mouseEvent();
-
-        //SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
-        //SDL_RenderClear(renderer);
-        //render_text(renderer, 0, 0, "FPS: ", font, &rect, &color);
+        // poll the mouse and keyboard/window events
+        eventSystem.pollEvent();
+        eventSystem.mouseEvent();
 
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT);
@@ -191,7 +158,7 @@ int main()
         // Activate the shaders for our program
         mainShader.use();
         
-        glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+        glm::mat4 view = glm::lookAt(eventSystem.cameraPos, eventSystem.cameraPos + eventSystem.cameraFront, eventSystem.cameraUp);
         mainShader.setMat4("view", view);
 
         
@@ -205,21 +172,15 @@ int main()
         
         // cube that follows camera
         // render the moving cubes
-        //for (unsigned int i = 0; i < 1; i++) {
         glm::mat4 model2 = glm::mat4(1.0f);
-        model2 = glm::translate(model2, cameraPos);
-        
-        blounding_box_max = glm::vec3(cameraPos.x+0.5f, cameraPos.y+0.5f, cameraPos.z+0.5f);
-        blounding_box_min = glm::vec3(cameraPos.x-0.5f, cameraPos.y-0.5f, cameraPos.z-0.5f);
+        model2 = glm::translate(model2, eventSystem.cameraPos);
 
         //rotate the model?? 
         //model2 = glm::rotate(model2, -cameraFront.x, cameraUp);        
         //model2 = glm::rotate(model2, cameraFront.y, glm::vec3(1,0,0));
 
-        //glUniformMatrix4fv(glGetUniformLocation(gProgram, "model\0"), 1, GL_FALSE, glm::value_ptr(model2));
         mainShader.setMat4("model", model2);
         glDrawArrays(GL_TRIANGLES, 0, 36);
-        //}
 
         glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 
@@ -234,105 +195,10 @@ int main()
     // De-allocate resources
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
-    //glDeleteProgram(gProgram);
+    glDeleteProgram(mainShader.gProgram);
 
     SDL_GL_DeleteContext(maincontext);
     SDL_DestroyWindow(mainwindow);
     SDL_Quit();
     return 0;
 }
-
-void pollEvent(SDL_Event & event, int & running) {
-    while (SDL_PollEvent(&event)){
-    // Event handler loop - keyboard - exit
-        switch(event.type){   
-            case SDL_QUIT:
-            {
-                printf("Closing..\n");
-                running = 0;
-                break;
-            }
-            case SDL_KEYDOWN:
-            {
-                switch ( event.key.keysym.sym )
-                {
-                    case SDLK_ESCAPE:
-                    {
-                        printf("Closing..\n");
-                        running = 0;
-                        break;
-                    }
-                    case SDLK_LSHIFT:
-                    {
-                        speed = 5;
-                        break;
-                    }
-                }
-                break;
-            }
-            case SDL_KEYUP:
-            {
-                switch ( event.key.keysym.sym )
-                {
-                    case SDLK_LSHIFT:
-                    {
-                        speed = 1;
-                        break;
-                    }
-                }
-                break;
-            }
-            default:
-                break;
-        }
-        switch (event.window.event) 
-        {
-            case SDL_WINDOWEVENT_RESIZED:
-            {
-                SDL_SetWindowSize(mainwindow, event.window.data1, event.window.data2);
-                W_WIDTH = event.window.data1;
-                W_HEIGHT = event.window.data2;
-                glViewport(0,0,W_WIDTH, W_HEIGHT);
-                break;
-            }
-            
-            default:
-                break;
-        }
-    }
-    float cameraSpeed = static_cast<float>(2.5 * deltaTime * speed);
-
-    const Uint8* kb = SDL_GetKeyboardState(NULL);
-    cameraPos += (kb[SDL_SCANCODE_W] * cameraSpeed * cameraFront) - (kb[SDL_SCANCODE_S] * cameraSpeed * cameraFront);
-    glm::vec3 normal = glm::vec3(glm::normalize(glm::cross(cameraFront, cameraUp)));
-    cameraPos += (kb[SDL_SCANCODE_D] * cameraSpeed * normal) - (kb[SDL_SCANCODE_A] * cameraSpeed * normal);// - (kb[SDL_SCANCODE_A] * normal * cameraSpeed);
-}
-
-void mouseEvent(void) {
-    int xpos = 0;
-    int ypos = 0;
-    SDL_GetRelativeMouseState(&xpos, &ypos);
-
-    if (xpos == lastX && ypos == lastY) { // no mouse movments detected
-        return;
-    }
-
-    lastX = xpos;
-    lastY = ypos;
-
-    float sense = 0.1f;
-    yaw += xpos * sense;
-    pitch += -ypos * sense;
-
-    if (pitch > 89.0f)
-        pitch = 89.0f;
-    if (pitch < -89.0f)
-        pitch = -89.0f;
-
-    glm::vec3 front;
-    front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-    front.y = sin(glm::radians(pitch));
-    front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-    cameraFront = glm::normalize(front);
-}
-//g++ -o shaders ./shaders_interpolation.cpp -lGL -lGLU -lglfw -lGLEW
