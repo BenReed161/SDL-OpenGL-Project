@@ -10,6 +10,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "../include/shader.h"
+
 #include <iostream>
 
 #define NUMBEROFOBJS = 2;
@@ -19,7 +21,6 @@ void mouseEvent(void);
 
 unsigned int W_WIDTH = 1200;
 unsigned int W_HEIGHT = 800;
-unsigned int gProgram = 0;
 unsigned int VBO, VAO = 0;
 
 glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
@@ -35,87 +36,11 @@ float fov = 45.0;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
+// for the camera / player pov
+int speed = 1;
+
 SDL_Window *mainwindow;
 SDL_GLContext maincontext;
-//SDL_Renderer *renderer;
-
-char * readfromFile(char * name) {
-    /*
-    
-    FILE * fileptr;
-    fileptr = fopen(name, "r");
-    if (!fileptr) {
-        printf("ERR : Attempting to read file name %s File does not exist.\n", name);
-        exit(1);
-    }
-    fseek(fileptr, 0, SEEK_END);
-    
-    int size = ftell(fileptr);
-    
-    rewind(fileptr);
-    //fclose(fileptr);
-    //fileptr = fopen(name, "r");
-
-    char * str = new char[ size ];
-    
-    fread(str, 1, size, fileptr);
-    fclose(fileptr);
-    
-    //
-    strcat(str, "\0");
-    printf("%s\n", str);
-    return str;
-    */
-    FILE* fileptr = fopen(name, "r");
-    if (!fileptr) {
-        printf("ERR : Attempting to read file name %s File does not exist.\n", name);
-        exit(1);
-    }
-    // Determine file size
-    if((fseek(fileptr, 0, SEEK_END))) {
-        printf("ERR : Failed to seek into file %s\n", name);
-        exit(1);
-    }
-    size_t size = ftell(fileptr);
-
-    char* str = new char[size];
-
-    rewind(fileptr);
-    fread(str, sizeof(char), size, fileptr);
-    fclose(fileptr);
-    
-    printf("%s\n", str);
-    //strcat(str, "\0");
-    return str;
-}
-
-/*
-void render_text(
-    SDL_Renderer * renderer,
-    int x,
-    int y, 
-    const char * text,
-    TTF_Font * font,
-    SDL_Rect * rect,
-    SDL_Color * color
-) {
-    SDL_Surface * surface;
-    SDL_Texture * texture;
-
-    surface = TTF_RenderText_Solid(font, text, *color);
-    texture = SDL_CreateTextureFromSurface(renderer, surface);
-    rect->x = x;
-    rect->y = y;
-    rect->w = surface->w;
-    rect->h = surface->h;
-
-    SDL_FreeSurface(surface);
-    SDL_RenderCopy(renderer, texture, NULL, rect);
-    SDL_DestroyTexture(texture);
-}*/
-/* This is wasteful for textures that stay the same.
-    * But makes things less stateful and easier to use.
-    * Not going to code an atlas solution here... are we? */
 
 int main()
 {   
@@ -148,8 +73,6 @@ int main()
         return 1;
     }
 
-    // glad: load all OpenGL function pointers
-    // ---------------------------------------
     GLenum glewError = glewInit();
     if (glewError != GLEW_OK) {
         printf( "Error initializing GLEW OPENGL ERR : %s\n", glewGetErrorString( glewError ) );
@@ -158,57 +81,10 @@ int main()
 
     SDL_SetRelativeMouseMode(SDL_TRUE);
 
-    //glEnable(GL_DEPTH_TEST);
+    //shader code
+    shader mainShader("./shaders/prog_vertex.vert", "./shaders/prog_fragment.frag");
 
-    char s[] = "./shaders/prog_vertex.vert";
-    char * file = readfromFile(s);
-    const GLchar* vertexShaderSource[] = {file};
-
-    unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, vertexShaderSource, NULL);
-    glCompileShader(vertexShader);
-    // check for shader compile errors
-    int success;
-    char infoLog[512];
-    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-    if (!success)
-    {
-        glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
-    }
-    delete file;
-    // fragment shader
-    char s1[] = "./shaders/prog_fragment.frag";
-    file = readfromFile(s1);
-    const GLchar* fragmentShaderSource[] = {file};
-
-    unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, fragmentShaderSource, NULL);
-    glCompileShader(fragmentShader);
-    // check for shader compile errors
-    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-    if (!success)
-    {
-        glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
-    }
-    delete file;
-    // link shaders
-    unsigned int gProgram = glCreateProgram();
-    glAttachShader(gProgram, vertexShader);
-    glAttachShader(gProgram, fragmentShader);
-    glLinkProgram(gProgram);
-    // check for linking errors
-    glGetProgramiv(gProgram, GL_LINK_STATUS, &success);
-    if (!success) {
-        glGetProgramInfoLog(gProgram, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
-    }
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
-
-    // set up vertex data (and buffer(s)) and configure vertex attributes
-    // ------------------------------------------------------------------
+    // Vertex buffers
     float vertices[] = {
         // positions         // colors
         -0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
@@ -258,7 +134,6 @@ int main()
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    //glBufferData(GL_ARRAY_BUFFER, sizeof(vertices2), vertices2, GL_STATIC_DRAW);
 
     // position attribute
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
@@ -266,15 +141,14 @@ int main()
     // color attribute
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
-
+    
     // render loop
-    // -----------
-    glUseProgram(gProgram);
+    mainShader.use();
 
     glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)W_WIDTH / (float)W_HEIGHT, 0.1f, 100.0f);
-    glUniformMatrix4fv(glGetUniformLocation(gProgram, "projection\0"), 1, GL_FALSE, glm::value_ptr(projection));
-    //printf("projection : %d\n", glGetUniformLocation(gProgram, "projection\0"));
+    mainShader.setMat4("projection", projection);
 
+    // Font init for SDL2
     /*
     TTF_Init();
     TTF_Font *font = TTF_OpenFont("mono.ttf", 24);
@@ -284,6 +158,9 @@ int main()
     }
     */
 
+    glm::vec3 blounding_box_max = glm::vec3(cameraPos.x+0.5f, cameraPos.y+0.5f, cameraPos.z+0.5f);
+    glm::vec3 blounding_box_min = glm::vec3(cameraPos.x-0.5f, cameraPos.y-0.5f, cameraPos.z-0.5f);
+
     int running = 1;
     while (running){
         //SDL_Color color; https://stackoverflow.com/questions/22886500/how-to-render-text-in-sdl2
@@ -292,6 +169,7 @@ int main()
         //color.b = 255;
         //color.a = 255;
         //SDL_Rect rect;
+        //SDL_WarpMouseInWindow(SDL_Window * window, int x, int y);
         
         // Main loop
         float currFrame = static_cast<float>(((float)SDL_GetTicks64())/1000);
@@ -310,43 +188,53 @@ int main()
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT);
         
-        glUseProgram(gProgram);
+        // Activate the shaders for our program
+        mainShader.use();
         
         glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-        glUniformMatrix4fv(glGetUniformLocation(gProgram, "view\0"), 1, GL_FALSE, glm::value_ptr(view));
+        mainShader.setMat4("view", view);
 
         
         glBindVertexArray(VAO);
         // render the static cubes
         glm::mat4 model = glm::mat4(1.0f);
-        glUniformMatrix4fv(glGetUniformLocation(gProgram, "model\0"), 1, GL_FALSE, glm::value_ptr(model));
+        mainShader.setMat4("model", model);
         glDrawArrays(GL_TRIANGLES, 0, 36);
         
         glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+        
+        // cube that follows camera
         // render the moving cubes
-        for (unsigned int i = 0; i < 1; i++) {
-            glm::mat4 model = glm::mat4(1.0f);
-            model = glm::translate(model, cameraPos);
+        //for (unsigned int i = 0; i < 1; i++) {
+        glm::mat4 model2 = glm::mat4(1.0f);
+        model2 = glm::translate(model2, cameraPos);
+        
+        blounding_box_max = glm::vec3(cameraPos.x+0.5f, cameraPos.y+0.5f, cameraPos.z+0.5f);
+        blounding_box_min = glm::vec3(cameraPos.x-0.5f, cameraPos.y-0.5f, cameraPos.z-0.5f);
 
-            model = glm::rotate(model, cameraFront.x * -1, cameraUp);
-            model = glm::rotate(model, cameraFront.y, glm::vec3(1,0,0));
+        //rotate the model?? 
+        //model2 = glm::rotate(model2, -cameraFront.x, cameraUp);        
+        //model2 = glm::rotate(model2, cameraFront.y, glm::vec3(1,0,0));
 
-            glUniformMatrix4fv(glGetUniformLocation(gProgram, "model\0"), 1, GL_FALSE, glm::value_ptr(model));
-            glDrawArrays(GL_TRIANGLES, 0, 36);
-        }
+        //glUniformMatrix4fv(glGetUniformLocation(gProgram, "model\0"), 1, GL_FALSE, glm::value_ptr(model2));
+        mainShader.setMat4("model", model2);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+        //}
+
         glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
-        //printf("x: %f\n", cameraUp.x);
-        //printf("y: %f\n", cameraUp.y);
-        //printf("z: %f\n\n", cameraUp.z);
+
+        //debug info 
+        //printf("x: %f\n", cameraFront.x);
+        //printf("y: %f\n", cameraFront.y);
+        //printf("z: %f\n\n", cameraFront.z);
 
         SDL_GL_SwapWindow(mainwindow);
     }
     
-    // optional: de-allocate all resources once they've outlived their purpose:
-    // ------------------------------------------------------------------------
+    // De-allocate resources
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
-    glDeleteProgram(gProgram);
+    //glDeleteProgram(gProgram);
 
     SDL_GL_DeleteContext(maincontext);
     SDL_DestroyWindow(mainwindow);
@@ -374,9 +262,26 @@ void pollEvent(SDL_Event & event, int & running) {
                         running = 0;
                         break;
                     }
+                    case SDLK_LSHIFT:
+                    {
+                        speed = 5;
+                        break;
+                    }
                 }
+                break;
             }
-            
+            case SDL_KEYUP:
+            {
+                switch ( event.key.keysym.sym )
+                {
+                    case SDLK_LSHIFT:
+                    {
+                        speed = 1;
+                        break;
+                    }
+                }
+                break;
+            }
             default:
                 break;
         }
@@ -395,7 +300,7 @@ void pollEvent(SDL_Event & event, int & running) {
                 break;
         }
     }
-    float cameraSpeed = static_cast<float>(2.5 * deltaTime);
+    float cameraSpeed = static_cast<float>(2.5 * deltaTime * speed);
 
     const Uint8* kb = SDL_GetKeyboardState(NULL);
     cameraPos += (kb[SDL_SCANCODE_W] * cameraSpeed * cameraFront) - (kb[SDL_SCANCODE_S] * cameraSpeed * cameraFront);
@@ -406,22 +311,18 @@ void pollEvent(SDL_Event & event, int & running) {
 void mouseEvent(void) {
     int xpos = 0;
     int ypos = 0;
-    SDL_GetMouseState(&xpos, &ypos);
+    SDL_GetRelativeMouseState(&xpos, &ypos);
+
     if (xpos == lastX && ypos == lastY) { // no mouse movments detected
         return;
     }
 
-    float xoffset = xpos - lastX;
-    float yoffset = lastY - ypos;
     lastX = xpos;
     lastY = ypos;
 
     float sense = 0.1f;
-    xoffset *= sense;
-    yoffset *= sense;
-
-    yaw += xoffset;
-    pitch += yoffset;
+    yaw += xpos * sense;
+    pitch += -ypos * sense;
 
     if (pitch > 89.0f)
         pitch = 89.0f;
