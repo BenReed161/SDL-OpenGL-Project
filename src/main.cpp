@@ -2,6 +2,9 @@
 #include <SDL2/SDL_timer.h>
 #include <SDL2/SDL_ttf.h>
 
+#include "extern/imgui.h"
+#include "extern/imgui_impl_sdl2.h"
+#include "extern/imgui_impl_opengl3.h"
 #include <GL/glew.h>
 
 #include <SDL2/SDL_opengl.h>
@@ -68,6 +71,16 @@ int main()
 
     SDL_SetRelativeMouseMode(SDL_TRUE);
 
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO();
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+
+    // Setup Platform/Renderer backends
+    ImGui_ImplSDL2_InitForOpenGL(mainwindow, maincontext);
+    ImGui_ImplOpenGL3_Init();
+
     //shader code
     shader mainShader("./shaders/prog_vertex.vert", "./shaders/prog_fragment.frag");
 
@@ -109,10 +122,10 @@ int main()
         -0.5f, -0.5f,  0.5f, 0.0f, 1.0f, 0.0f,
         -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 1.0f
     };
-    glm::vec3 positions[] = {
-        glm::vec3( 0.0f, 0.0f, 0.0f ),
-        glm::vec3( 0.0f, 0.0f, 3.0f )
-    };
+    //glm::vec3 positions[] = {
+    //    glm::vec3( 0.0f, 0.0f, 0.0f ),
+    //    glm::vec3( 0.0f, 0.0f, 3.0f )
+    //};
     
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -140,6 +153,15 @@ int main()
     events eventSystem(event, mainwindow);
 
     while (eventSystem.running){
+        // (Where your code calls SDL_PollEvent())
+        ImGui_ImplSDL2_ProcessEvent(&eventSystem.event); // Forward your event to backend
+
+        // (After event loop)
+        // Start the Dear ImGui frame
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplSDL2_NewFrame();
+        ImGui::NewFrame();
+
         //?
         //SDL_Color color; https://stackoverflow.com/questions/22886500/how-to-render-text-in-sdl2
         
@@ -149,7 +171,7 @@ int main()
         lastFrame = currFrame;
 
         // poll the mouse and keyboard/window events
-        eventSystem.pollEvent();
+        eventSystem.pollEvent(); //SDL2 PollEvent while loop
         eventSystem.mouseEvent();
 
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -190,9 +212,19 @@ int main()
         //printf("z: %f\n\n", cameraFront.z);
 
         SDL_GL_SwapWindow(mainwindow);
+
+        // Rendering
+        // (Your code clears your framebuffer, renders your other stuff etc.)
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        // (Your code calls SDL_GL_SwapWindow() etc.)
     }
     
     // De-allocate resources
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplSDL2_Shutdown();
+    ImGui::DestroyContext();
+
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
     glDeleteProgram(mainShader.gProgram);

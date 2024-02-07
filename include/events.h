@@ -13,9 +13,10 @@
 class events
 {
 public: 
-
+    SDL_Event event;
+    
     float deltaTime = 0.0f;
-
+    
     int running = 1;
 
     glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
@@ -125,7 +126,6 @@ public:
     }
 
 private:
-    SDL_Event event;
     SDL_Window *sdl_main_window;
 
     unsigned int W_WIDTH = 1200; //inwdow width
