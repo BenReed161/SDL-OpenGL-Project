@@ -7,6 +7,10 @@
 #include <SDL2/SDL_opengl.h>
 #include <glm/glm.hpp>
 
+#include "../src/extern/imgui.h"
+#include "../src/extern/imgui_impl_sdl2.h"
+#include "../src/extern/imgui_impl_opengl3.h"
+
 #include <string>
 #include <iostream>
 
@@ -34,6 +38,9 @@ public:
     void pollEvent() {
         while (SDL_PollEvent(&event)){
         // Event handler loop - keyboard - exit
+            // Process IMGUI input events and window resizing.
+            ImGui_ImplSDL2_ProcessEvent(&event);
+
             switch(event.type){   
                 case SDL_QUIT:
                 {
@@ -47,7 +54,7 @@ public:
                     {
                         case SDLK_ESCAPE:
                         {
-                            printf("Closing..\n");
+                            printf("Exiting..\n");
                             running = 0;
                             break;
                         }
@@ -55,6 +62,12 @@ public:
                         {
                             speed = 5;
                             break;
+                        }
+                        case SDLK_TAB:
+                        {
+                            printf("Tabbing to edit..\n");
+                            receiving_mouse_events = !receiving_mouse_events;
+                            SDL_SetRelativeMouseMode((SDL_bool)receiving_mouse_events);
                         }
                     }
                     break;
@@ -98,6 +111,9 @@ public:
     }
 
     void mouseEvent(void) {
+        if(!receiving_mouse_events)
+            return;
+
         int xpos = 0;
         int ypos = 0;
         SDL_GetRelativeMouseState(&xpos, &ypos);
@@ -136,6 +152,8 @@ private:
     float lastX = W_WIDTH / 2.0;
     float lastY = W_HEIGHT / 2.0;
     float fov = 45.0;
+
+    int receiving_mouse_events = 1;
 };
 
 #endif

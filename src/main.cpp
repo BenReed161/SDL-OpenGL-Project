@@ -15,6 +15,7 @@
 
 #include "../include/shader.h"
 #include "../include/events.h"
+#include "../include/editor.h"
 
 #include <iostream>
 
@@ -153,18 +154,7 @@ int main()
     events eventSystem(event, mainwindow);
 
     while (eventSystem.running){
-        // (Where your code calls SDL_PollEvent())
-        ImGui_ImplSDL2_ProcessEvent(&eventSystem.event); // Forward your event to backend
-
-        // (After event loop)
-        // Start the Dear ImGui frame
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplSDL2_NewFrame();
-        ImGui::NewFrame();
-
-        //?
-        //SDL_Color color; https://stackoverflow.com/questions/22886500/how-to-render-text-in-sdl2
-        
+ 
         // Main loop
         float currFrame = static_cast<float>(((float)SDL_GetTicks64())/1000);
         eventSystem.deltaTime = currFrame - lastFrame;
@@ -173,6 +163,13 @@ int main()
         // poll the mouse and keyboard/window events
         eventSystem.pollEvent(); //SDL2 PollEvent while loop
         eventSystem.mouseEvent();
+
+        // Start the Dear ImGui frame
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplSDL2_NewFrame();
+        ImGui::NewFrame();
+        
+        ImGui::showEditorMenu();
 
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT);
@@ -206,18 +203,18 @@ int main()
 
         glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 
-        //debug info 
+        //debug
         //printf("x: %f\n", cameraFront.x);
         //printf("y: %f\n", cameraFront.y);
         //printf("z: %f\n\n", cameraFront.z);
-
-        SDL_GL_SwapWindow(mainwindow);
 
         // Rendering
         // (Your code clears your framebuffer, renders your other stuff etc.)
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         // (Your code calls SDL_GL_SwapWindow() etc.)
+
+        SDL_GL_SwapWindow(mainwindow);
     }
     
     // De-allocate resources
