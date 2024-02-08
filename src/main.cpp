@@ -123,10 +123,9 @@ int main()
         -0.5f, -0.5f,  0.5f, 0.0f, 1.0f, 0.0f,
         -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 1.0f
     };
-    //glm::vec3 positions[] = {
-    //    glm::vec3( 0.0f, 0.0f, 0.0f ),
-    //    glm::vec3( 0.0f, 0.0f, 3.0f )
-    //};
+    glm::vec3 positions[] = {
+        glm::vec3( 0.0f, 0.0f, 0.0f )
+    };
     
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -169,7 +168,7 @@ int main()
         ImGui_ImplSDL2_NewFrame();
         ImGui::NewFrame();
         
-        ImGui::showEditorMenu();
+        ImGui::showEditorMenu(positions);
 
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT);
