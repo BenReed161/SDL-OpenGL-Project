@@ -44,7 +44,7 @@ exec:
 editor:
 	$(CXX) $(CXXFLAGS) -c -o $(BUILD_DIR)/editor.o $(SRC_DIR)/editor.cpp
 
-main-exec:
+main-exec: editor
 	$(CXX) $(CXXFLAGS) -c -o $(BUILD_DIR)/main.o $(SRC_DIR)/main.cpp
 	$(CXX) -o $(EXE) $(addprefix $(BUILD_DIR)/, $(OBJS)) $(CXXFLAGS) $(LIBS)
 

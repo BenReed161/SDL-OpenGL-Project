@@ -63,7 +63,7 @@ public:
                             speed = 5;
                             break;
                         }
-                        case SDLK_TAB:
+                        case SDLK_e:
                         {
                             printf("Tabbing to edit..\n");
                             receiving_mouse_events = !receiving_mouse_events;

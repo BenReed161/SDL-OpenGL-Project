@@ -17,7 +17,10 @@
 #include "../include/events.h"
 #include "../include/editor.h"
 
+#include "btBulletDynamicsCommon.h"
+
 #include <iostream>
+#include <vector>
 
 #define NUMBEROFOBJS = 2;
 
@@ -86,6 +89,7 @@ int main()
     shader mainShader("./shaders/prog_vertex.vert", "./shaders/prog_fragment.frag");
 
     // Vertex buffers
+    
     float vertices[] = {
         // positions         // colors
         -0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
@@ -123,9 +127,8 @@ int main()
         -0.5f, -0.5f,  0.5f, 0.0f, 1.0f, 0.0f,
         -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 1.0f
     };
-    glm::vec3 positions[] = {
-        glm::vec3( 0.0f, 0.0f, 0.0f )
-    };
+    std::vector<glm::vec3> positions;
+    std::vector<glm::vec3> scales;
     
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -152,6 +155,8 @@ int main()
     
     events eventSystem(event, mainwindow);
 
+    glm::vec3 scale = glm::vec3(1.f, 1.f, 1.f);
+
     while (eventSystem.running){
  
         // Main loop
@@ -168,7 +173,8 @@ int main()
         ImGui_ImplSDL2_NewFrame();
         ImGui::NewFrame();
         
-        ImGui::showEditorMenu(positions);
+        // Show the EDITOR menu
+        //ImGui::showEditorMenu(positions, scales);
 
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT);
@@ -183,24 +189,35 @@ int main()
         glBindVertexArray(VAO);
         // render the static cubes
         glm::mat4 model = glm::mat4(1.0f);
+        model = glm::scale(model, scale);
         mainShader.setMat4("model", model);
         glDrawArrays(GL_TRIANGLES, 0, 36);
-        
+        // render the other cubes
+        for(unsigned int i = 0; i < positions.size(); i++) {
+            glm::mat4 editor = glm::mat4(1.0f);
+            editor = glm::translate(editor, positions.at(i));
+            editor = glm::scale(editor, scales.at(i));
+
+            mainShader.setMat4("model", editor);
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
+
         glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
         
         // cube that follows camera
         // render the moving cubes
         glm::mat4 model2 = glm::mat4(1.0f);
+        
         model2 = glm::translate(model2, eventSystem.cameraPos);
-
-        //rotate the model?? 
-        //model2 = glm::rotate(model2, -cameraFront.x, cameraUp);        
-        //model2 = glm::rotate(model2, cameraFront.y, glm::vec3(1,0,0));
 
         mainShader.setMat4("model", model2);
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
         glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+
+        /*
+        
+        */
 
         //debug
         //printf("x: %f\n", cameraFront.x);
@@ -208,10 +225,8 @@ int main()
         //printf("z: %f\n\n", cameraFront.z);
 
         // Rendering
-        // (Your code clears your framebuffer, renders your other stuff etc.)
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-        // (Your code calls SDL_GL_SwapWindow() etc.)
 
         SDL_GL_SwapWindow(mainwindow);
     }
@@ -228,5 +243,6 @@ int main()
     SDL_GL_DeleteContext(maincontext);
     SDL_DestroyWindow(mainwindow);
     SDL_Quit();
+
     return 0;
 }

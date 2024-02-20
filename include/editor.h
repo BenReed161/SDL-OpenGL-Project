@@ -5,8 +5,10 @@
 
 #include <glm/glm.hpp>
 
+#include <vector>
+
 namespace ImGui {
-    void showEditorMenu(glm::vec3 positions[]);
+    void showEditorMenu(std::vector<glm::vec3> & positions, std::vector<glm::vec3> & scales);
 }
 
 #endif
