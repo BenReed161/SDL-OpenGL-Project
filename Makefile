@@ -3,15 +3,16 @@ CXX = g++
 SRC_DIR = ./src
 EXE = main
 IMGUI_DIR = ./src/extern
+BULLET_DIR = /usr/include/bullet/
 BUILD_DIR = ./build
 
 SOURCES = ./src/main.cpp 
 SOURCES += $(IMGUI_DIR)/imgui.cpp $(IMGUI_DIR)/imgui_draw.cpp $(IMGUI_DIR)/imgui_tables.cpp $(IMGUI_DIR)/imgui_widgets.cpp
 SOURCES += $(IMGUI_DIR)/imgui_impl_sdl2.cpp $(IMGUI_DIR)/imgui_impl_opengl3.cpp ./src/editor.cpp
 OBJS = $(addsuffix .o, $(basename $(notdir $(SOURCES)))) # $(addprefix $(BUILD_DIR)/, 
-LINUX_GL_LIBS = -lGL -lGLEW -lGLU
+LINUX_GL_LIBS = -lGL -lGLEW -lGLU -lBulletSoftBody -lBulletDynamics -lBulletCollision -lLinearMath
 
-CXXFLAGS = -std=c++11 -I$(IMGUI_DIR) -I$(IMGUI_DIR)
+CXXFLAGS = -std=c++11 -I$(IMGUI_DIR) -I$(BULLET_DIR)
 CXXFLAGS += -g -Wall -Wformat
 LIBS =
 
