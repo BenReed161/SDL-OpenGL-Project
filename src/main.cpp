@@ -16,92 +16,23 @@
 #include "../include/shader.h"
 #include "../include/events.h"
 #include "../include/editor.h"
-
-#include "btBulletDynamicsCommon.h"
-#include "btBulletCollisionCommon.h"
+#include "../include/context.h"
 
 #include <iostream>
 #include <vector>
 
 #define NUMBEROFOBJS = 2;
 
-void pollEvent(SDL_Event &, int &);
-void mouseEvent(void);
-
-unsigned int W_WIDTH = 1200;
-unsigned int W_HEIGHT = 800;
 unsigned int VBO, VAO = 0;
 
 float lastFrame = 0.0f;
 
-SDL_Window *mainwindow;
-SDL_GLContext maincontext;
-
 int main()
 {   
-    if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
-        printf("error initializing SDL: %s\n", SDL_GetError());
-        return 1;
-    }
-   
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-    SDL_GL_SetAttribute( SDL_GL_CONTEXT_PROFILE_MASK, 
-            SDL_GL_CONTEXT_PROFILE_CORE );
+    //create the init class and init data
+    context mainContext;
 
-    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-
-    mainwindow = SDL_CreateWindow("SDL2 & OpenGL 3.3", SDL_WINDOWPOS_CENTERED, 
-    SDL_WINDOWPOS_CENTERED, W_WIDTH, W_HEIGHT, 
-    SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
-    
-    if (!mainwindow) {
-        printf("error creating the main window SDL ERR : %s\n", SDL_GetError());
-        return 1;
-    }
-
-    maincontext = SDL_GL_CreateContext(mainwindow);
-
-    if (!maincontext) {
-        printf("error creating opengl context OPENGL ERR : %s\n", SDL_GetError());
-        return 1;
-    }
-
-    GLenum glewError = glewInit();
-    if (glewError != GLEW_OK) {
-        printf( "Error initializing GLEW OPENGL ERR : %s\n", glewGetErrorString( glewError ) );
-        return 1;
-    }
-
-    //Physics init w/ Bullet 3 Physics Engine
-
-    btDefaultCollisionConfiguration* collisionConfiguration = new btDefaultCollisionConfiguration();
-    
-    btCollisionDispatcher* dispatcher = new btCollisionDispatcher(collisionConfiguration);
-
-    btBroadphaseInterface* overlappingPairCache = new btDbvtBroadphase();
-
-    btSequentialImpulseConstraintSolver* solver = new btSequentialImpulseConstraintSolver;
-
-    btDiscreteDynamicsWorld* dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, overlappingPairCache, solver, collisionConfiguration);
-    
-    dynamicsWorld->setGravity(btVector3(0, -10, 0));
-
-
-    SDL_SetRelativeMouseMode(SDL_TRUE);
-
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO();
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-
-    // Setup Platform/Renderer backends
-    ImGui_ImplSDL2_InitForOpenGL(mainwindow, maincontext);
-    ImGui_ImplOpenGL3_Init();
-
-    //shader code
+    //call the shader class - shader code
     shader mainShader("./shaders/prog_vertex.vert", "./shaders/prog_fragment.frag");
 
     // Vertex buffers
@@ -164,12 +95,13 @@ int main()
     // render loop
     mainShader.use();
 
-    glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)W_WIDTH / (float)W_HEIGHT, 0.1f, 100.0f);
+    glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)mainContext.W_WIDTH / (float)mainContext.W_HEIGHT, 0.1f, 100.0f);
     mainShader.setMat4("projection", projection);
 
     SDL_Event event;
     
-    events eventSystem(event, mainwindow);
+    // Create an event system for the program and main game loop.
+    events eventSystem(event, mainContext.mainwindow, &mainContext.W_WIDTH, &mainContext.W_HEIGHT);
 
     glm::vec3 scale = glm::vec3(1.f, 1.f, 1.f);
 
@@ -209,6 +141,7 @@ int main()
         mainShader.setMat4("model", model);
         glDrawArrays(GL_TRIANGLES, 0, 36);
         // render the other cubes
+        /*
         for(unsigned int i = 0; i < positions.size(); i++) {
             glm::mat4 editor = glm::mat4(1.0f);
             editor = glm::translate(editor, positions.at(i));
@@ -216,7 +149,7 @@ int main()
 
             mainShader.setMat4("model", editor);
             glDrawArrays(GL_TRIANGLES, 0, 36);
-        }
+        }*/
 
         glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
         
@@ -224,7 +157,7 @@ int main()
         // render the moving cubes
         glm::mat4 model2 = glm::mat4(1.0f);
         
-        model2 = glm::translate(model2, eventSystem.cameraPos);
+        model2 = glm::translate(model2, glm::vec3(0.0f,0.0f,3.f));
 
         mainShader.setMat4("model", model2);
         glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -244,9 +177,9 @@ int main()
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-        SDL_GL_SwapWindow(mainwindow);
+        SDL_GL_SwapWindow(mainContext.mainwindow);
     }
-    
+
     // De-allocate resources
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplSDL2_Shutdown();
@@ -256,8 +189,8 @@ int main()
     glDeleteBuffers(1, &VBO);
     glDeleteProgram(mainShader.gProgram);
 
-    SDL_GL_DeleteContext(maincontext);
-    SDL_DestroyWindow(mainwindow);
+    mainContext.deleteContext();
+    
     SDL_Quit();
 
     return 0;
