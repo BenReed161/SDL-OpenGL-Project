@@ -1,3 +1,6 @@
 *.o
 /build/*.o
 ./imgui.ini
+*.ini
+./*.ini
+/imgui.ini
