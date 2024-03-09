@@ -87,7 +87,7 @@ char * shader::readfromFile(const char * name) {
         fread(str, sizeof(char), size, fileptr);
         fclose(fileptr);
         
-        printf("%s\n", str);
+        //printf("%s\n", str);
         printf("Read file \"%s\" correctly\n\n", name);
         
         return str;

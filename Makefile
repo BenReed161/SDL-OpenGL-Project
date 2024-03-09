@@ -3,13 +3,12 @@ CXX = g++
 SRC_DIR = ./src
 EXE = main
 IMGUI_DIR = ./src/extern
-BULLET_DIR = /usr/include/bullet/
 BUILD_DIR = ./build
 
 SOURCES = ./src/main.cpp 
 SOURCES += $(IMGUI_DIR)/imgui.cpp $(IMGUI_DIR)/imgui_draw.cpp $(IMGUI_DIR)/imgui_tables.cpp $(IMGUI_DIR)/imgui_widgets.cpp
 SOURCES += $(IMGUI_DIR)/imgui_impl_sdl2.cpp $(IMGUI_DIR)/imgui_impl_opengl3.cpp
-SOURCES += $(SRC_DIR)/editor.cpp $(SRC_DIR)/events.cpp $(SRC_DIR)/shader.cpp $(SRC_DIR)/context.cpp
+SOURCES += $(SRC_DIR)/editor.cpp $(SRC_DIR)/events.cpp $(SRC_DIR)/shader.cpp $(SRC_DIR)/context.cpp $(SRC_DIR)/object.cpp
 
 OBJS = $(addsuffix .o, $(basename $(notdir $(SOURCES)))) # $(addprefix $(BUILD_DIR)/, 
 LINUX_GL_LIBS = -lGL -lGLEW -lGLU -lLinearMath
@@ -55,6 +54,9 @@ shader:
 
 context:
 	$(CXX) $(CXXFLAGS) -c -o $(BUILD_DIR)/context.o $(SRC_DIR)/context.cpp
+
+object:
+	$(CXX) $(CXXFLAGS) -c -o $(BUILD_DIR)/object.o $(SRC_DIR)/object.cpp
 
 prog:
 	$(CXX) $(CXXFLAGS) -c -o $(BUILD_DIR)/main.o $(SRC_DIR)/main.cpp
