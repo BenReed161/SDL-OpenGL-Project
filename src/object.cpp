@@ -35,6 +35,7 @@ float * object::loadobj() {
 
     while (std::getline(obj_file, line)) {
         std::string curr_vert;
+        std::string curr_face;
         if (line[0] == 118){
             for (size_t i = 2; i < line.size(); i++) {
                 if (line[i] != 32)
@@ -48,25 +49,56 @@ float * object::loadobj() {
             curr_vert.clear();
         }
         if (line[0] == 102){
-            for (size_t i = 2; i < line.size(); i+=2) {
-                face_arr.push_back(line[i]-48);
+            for (size_t i = 2; i < line.size(); i++) {
+                if (line[i] != 32)
+                    curr_face.push_back(line[i]);
+                else {
+                    face_arr.push_back(std::stoi(curr_face));
+                    curr_face.clear();
+                }
             }
+            face_arr.push_back(std::stof(curr_face));
+            curr_face.clear();
         }
     }
 
+    for (std::vector<int>::iterator it = face_arr.begin() ; it != face_arr.end(); ++it){
+        std::cout << (*it) << std::endl;
+    }
+
+    std::cout << std::endl;
+    std::cout << std::endl;
+    
     vertices = new float[face_arr.size() * 3];
 
     int j = 0;
     for (std::vector<int>::iterator it = face_arr.begin() ; it != face_arr.end(); ++it){
         int x = 0;
         for(int i = j; i < (j+3); i++){
-            vertices[i]=vert_arr[(((*it - 1) * 3) + x)];
+            vertices[i]=vert_arr[(((*it-1) * 3) + x)];
             x++;
         }
         j+=3;
     }
 
+    /*
+    //DEBUG
+    for (std::vector<float>::iterator it = vert_arr.begin() ; it != vert_arr.end(); ++it){
+        std::cout << (*it) << std::endl;
+    }
+    */
+    for (size_t i = 0; i < face_arr.size() * 3; i++){
+        std::cout << vertices[i] << ", " << std::endl;
+    }
+
     obj_file.close();
 
+    // each face has 3 verticies and each vertex is 4 bytes.
+    size_total = face_arr.size() * 3 * 4;
+
     return vertices;
+}
+
+size_t object::size() {
+    return size_total;
 }

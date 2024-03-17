@@ -37,7 +37,7 @@ int main()
     shader mainShader("./shaders/prog_vertex.vert", "./shaders/prog_fragment.frag");
 
     //load the data from an object file.
-    object cube_obj("./res/cube_clean.obj");
+    object cube_obj("./res/ico.obj");
     float * vertices = cube_obj.loadobj();
 
     std::vector<glm::vec3> positions;
@@ -48,8 +48,10 @@ int main()
     // bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
     glBindVertexArray(VAO);
 
+    std::cout << cube_obj.size() << std::endl;
+
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, 432/*Size of cube (change so it's dynamic to the prog)*/, vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, cube_obj.size(), vertices, GL_STATIC_DRAW);
 
     // position attribute
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
