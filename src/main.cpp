@@ -23,6 +23,7 @@
 #include <vector>
 
 #define NUMBEROFOBJS = 2;
+#define DEBUG_PRINT = 1;
 
 unsigned int VBO, VAO = 0;
 
@@ -39,6 +40,7 @@ int main()
     //load the data from an object file.
     object cube_obj("./res/ico.obj");
     float * vertices = cube_obj.loadobj();
+    int faces = cube_obj.face_count();
 
     std::vector<glm::vec3> positions;
     std::vector<glm::vec3> scales;
@@ -48,8 +50,9 @@ int main()
     // bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
     glBindVertexArray(VAO);
 
-    std::cout << cube_obj.size() << std::endl;
-
+#ifdef DEBUG_PRINT
+    std::cout << "size:" << cube_obj.size() << std::endl;
+#endif
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, cube_obj.size(), vertices, GL_STATIC_DRAW);
 
@@ -109,7 +112,7 @@ int main()
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::scale(model, scale);
         mainShader.setMat4("model", model);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        glDrawArrays(GL_TRIANGLES, 0, faces);
         // render the other cubes
         /*
         for(unsigned int i = 0; i < positions.size(); i++) {
@@ -130,7 +133,7 @@ int main()
         model2 = glm::translate(model2, glm::vec3(0.0f,0.0f,3.f));
 
         mainShader.setMat4("model", model2);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        glDrawArrays(GL_TRIANGLES, 0, faces);
 
         glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 

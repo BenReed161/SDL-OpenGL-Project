@@ -5,6 +5,8 @@
 #include <iostream>
 #include <vector>
 
+
+
 object::object(std::string file_name) {
     //loop throughout the file if line starts with v, capture the next data with space as delimter adding it to an array
     //load the vertex data
@@ -17,7 +19,7 @@ object::object(std::string file_name) {
     filename = file_name;
 }
 
-object::~object(){
+object::~object() {
     std::cout << "deconstructed obj" << std::endl;
     delete vertices;
 }
@@ -30,8 +32,7 @@ float * object::loadobj() {
     }
     std::string line;
 
-    std::vector<float> vert_arr;
-    std::vector<int> face_arr;
+
 
     while (std::getline(obj_file, line)) {
         std::string curr_vert;
@@ -97,6 +98,10 @@ float * object::loadobj() {
     size_total = face_arr.size() * 3 * 4;
 
     return vertices;
+}
+
+size_t object::face_count() {
+    return face_arr.size();
 }
 
 size_t object::size() {

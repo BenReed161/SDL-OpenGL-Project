@@ -11,7 +11,7 @@ SOURCES += $(IMGUI_DIR)/imgui_impl_sdl2.cpp $(IMGUI_DIR)/imgui_impl_opengl3.cpp
 SOURCES += $(SRC_DIR)/editor.cpp $(SRC_DIR)/events.cpp $(SRC_DIR)/shader.cpp $(SRC_DIR)/context.cpp $(SRC_DIR)/object.cpp
 
 OBJS = $(addsuffix .o, $(basename $(notdir $(SOURCES)))) # $(addprefix $(BUILD_DIR)/, 
-LINUX_GL_LIBS = -lGL -lGLEW -lGLU -lLinearMath
+LINUX_GL_LIBS = -lGL -lGLEW -lGLU
 
 CXXFLAGS = -std=c++11 -I$(IMGUI_DIR) -I$(BULLET_DIR)
 CXXFLAGS += -g -Wall -Wformat

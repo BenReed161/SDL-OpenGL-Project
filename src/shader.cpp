@@ -12,7 +12,7 @@
 shader::shader(const char * vert_file, const char * frag_file){
     // vertex shader
     char * file = readfromFile(vert_file);
-    const GLchar* vertexShaderSource[] = {file};
+    const GLchar* vertexShaderSource[] = {file + '\0'};
 
     unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertexShader, 1, vertexShaderSource, NULL);
@@ -30,7 +30,7 @@ shader::shader(const char * vert_file, const char * frag_file){
 
     // fragment shader
     file = readfromFile(frag_file);
-    const GLchar* fragmentShaderSource[] = {file};
+    const GLchar* fragmentShaderSource[] = {file + '\0'};
 
     unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(fragmentShader, 1, fragmentShaderSource, NULL);
