@@ -137,7 +137,7 @@ void ImGui::showEditorMenu(std::vector<glm::vec3> & positions, std::vector<glm::
                 //draw_list->AddCircle(ImVec2((origin.x + points[n].x) -, (origin.y + points[n].y)), 3, IM_COL32(0, 255, 0, 255));
                 draw_list->AddRect(ImVec2(origin.x + points[n].x, origin.y + points[n].y), ImVec2(origin.x + points[n + 1].x, origin.y + points[n + 1].y), IM_COL32(255, 255, 0, 255));
             }
-            
+ 
             draw_list->PopClipRect();
             ImGui::EndTabItem();
         }

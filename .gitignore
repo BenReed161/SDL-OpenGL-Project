@@ -1,2 +1,4 @@
 *.o
 /build/*.o
+*.obj
+*.mtl

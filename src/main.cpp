@@ -30,7 +30,8 @@ unsigned int VBO, VAO = 0;
 float lastFrame = 0.0f;
 
 int main()
-{   
+{  
+ 
     //create the init class and init data
     context mainContext;
 
@@ -38,7 +39,8 @@ int main()
     shader mainShader("./shaders/prog_vertex.vert", "./shaders/prog_fragment.frag");
 
     //load the data from an object file.
-    object cube_obj("./res/ico.obj");
+    object cube_obj("./res/cube.obj");
+
     float * vertices = cube_obj.loadobj();
     int faces = cube_obj.face_count();
 
@@ -59,8 +61,8 @@ int main()
     // position attribute
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
-    // color attribute
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)(3 * sizeof(float)));
+    // normal attribute
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
     
     // render loop
@@ -68,6 +70,18 @@ int main()
 
     glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)mainContext.W_WIDTH / (float)mainContext.W_HEIGHT, 0.1f, 100.0f);
     mainShader.setMat4("projection", projection);
+    
+    //Send lighting information to the shader
+    //create a position for the test light
+    glm::vec3 light = glm::vec3(0.0f, 4.0f, 0.0f);
+    //create a color for the test light
+    glm::vec3 light_color = glm::vec3(1.0f, 1.0f, 1.0f);
+    
+    mainShader.setVec3("lightPos", light);
+    mainShader.setVec3("lightColor", light_color);
+
+    //Send the color information to the mainShader for the given object
+    mainShader.setVec3("objectColor", glm::vec3(0.55f, 0.55f, 1.0f));
 
     SDL_Event event;
     
@@ -108,7 +122,7 @@ int main()
 
         
         glBindVertexArray(VAO);
-        // render the static cubes
+        // render the static objects 
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::scale(model, scale);
         mainShader.setMat4("model", model);
@@ -126,8 +140,7 @@ int main()
 
         glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
         
-        // cube that follows camera
-        // render the moving cubes
+        // render the write frame static objects 
         glm::mat4 model2 = glm::mat4(1.0f);
         
         model2 = glm::translate(model2, glm::vec3(0.0f,0.0f,3.f));
@@ -137,9 +150,8 @@ int main()
 
         glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 
-        /*
-        
-        */
+        //Send camera information to the light shader
+        mainShader.setVec3("viewPos", eventSystem.cameraPos);
 
         //debug
         //printf("x: %f\n", cameraFront.x);

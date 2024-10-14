@@ -15,6 +15,7 @@ public:
     unsigned int gProgram;
     shader(const char * vert_file, const char * frag_file);
     void setMat4(const std::string &name, const glm::mat4 &matrix);
+    void setVec3(const std::string &name, const glm::vec3 &vector3);
     void use();
 
 private:

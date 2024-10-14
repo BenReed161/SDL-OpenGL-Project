@@ -63,13 +63,11 @@ float * object::loadobj() {
         }
     }
 
-    for (std::vector<int>::iterator it = face_arr.begin() ; it != face_arr.end(); ++it){
-        std::cout << (*it) << std::endl;
-    }
+    //DEBUG
+    //for (std::vector<int>::iterator it = face_arr.begin() ; it != face_arr.end(); ++it){
+    //    std::cout << (*it) << std::endl;
+    //}
 
-    std::cout << std::endl;
-    std::cout << std::endl;
-    
     vertices = new float[face_arr.size() * 3];
 
     int j = 0;
@@ -88,9 +86,10 @@ float * object::loadobj() {
         std::cout << (*it) << std::endl;
     }
     */
-    for (size_t i = 0; i < face_arr.size() * 3; i++){
-        std::cout << vertices[i] << ", " << std::endl;
-    }
+    //DEBUG
+    //for (size_t i = 0; i < face_arr.size() * 3; i++){
+    //    std::cout << vertices[i] << ", " << std::endl;
+    //}
 
     obj_file.close();
 
