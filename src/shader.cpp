@@ -91,6 +91,7 @@ char * shader::readfromFile(const char * name) {
         rewind(fileptr);
         fread(str, sizeof(char), size, fileptr);
         fclose(fileptr);
+	str[size++] = '\0';
         
         //printf("%s\n", str);
         printf("Read file \"%s\" correctly\n\n", name);

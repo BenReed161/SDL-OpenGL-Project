@@ -39,7 +39,7 @@ int main()
     shader mainShader("./shaders/prog_vertex.vert", "./shaders/prog_fragment.frag");
 
     //load the data from an object file.
-    object cube_obj("./res/cube.obj");
+    object cube_obj("./res/ico.obj");
 
     float * vertices = cube_obj.loadobj();
     int faces = cube_obj.face_count();
