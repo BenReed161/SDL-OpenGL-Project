@@ -15,8 +15,10 @@ class object {
         std::string filename;
         float* vertices;
         size_t size_total;
+		int faces = 0;
         std::vector<float> vert_arr;
         std::vector<int> face_arr;
+		std::vector<float> norm_arr;
 };
 
 #endif

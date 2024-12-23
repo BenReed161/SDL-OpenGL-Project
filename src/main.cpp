@@ -39,10 +39,11 @@ int main()
     shader mainShader("./shaders/prog_vertex.vert", "./shaders/prog_fragment.frag");
 
     //load the data from an object file.
-    object cube_obj("./res/ico.obj");
+    object cube_obj("./res/monk.obj");
 
     float * vertices = cube_obj.loadobj();
     int faces = cube_obj.face_count();
+	std::cout << "faces:" << faces << std::endl;
 
     std::vector<glm::vec3> positions;
     std::vector<glm::vec3> scales;
@@ -59,7 +60,7 @@ int main()
     glBufferData(GL_ARRAY_BUFFER, cube_obj.size(), vertices, GL_STATIC_DRAW);
 
     // position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
     // normal attribute
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
@@ -73,7 +74,7 @@ int main()
     
     //Send lighting information to the shader
     //create a position for the test light
-    glm::vec3 light = glm::vec3(0.0f, 4.0f, 0.0f);
+    glm::vec3 light = glm::vec3(4.0f, 4.0f, 0.0f);
     //create a color for the test light
     glm::vec3 light_color = glm::vec3(1.0f, 1.0f, 1.0f);
     
@@ -126,7 +127,7 @@ int main()
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::scale(model, scale);
         mainShader.setMat4("model", model);
-        glDrawArrays(GL_TRIANGLES, 0, faces);
+        glDrawArrays(GL_TRIANGLES, 0, faces*3);
         // render the other cubes
         /*
         for(unsigned int i = 0; i < positions.size(); i++) {
@@ -146,7 +147,7 @@ int main()
         model2 = glm::translate(model2, glm::vec3(0.0f,0.0f,3.f));
 
         mainShader.setMat4("model", model2);
-        glDrawArrays(GL_TRIANGLES, 0, faces);
+        glDrawArrays(GL_TRIANGLES, 0, faces*3);
 
         glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 
