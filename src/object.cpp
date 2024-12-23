@@ -8,14 +8,7 @@
 
 
 object::object(std::string file_name) {
-    //loop throughout the file if line starts with v, capture the next data with space as delimter adding it to an array
-    //load the vertex data
-    //load the face data
-    //if say "f 1 3 5"
-    //array index 0 of the vertex data concat to the list + index 2 and index 4 (subtract 1 from each index of the array)
-    //
-    //use the face data to create an array of vertices for the opengl format - faces of tris.
-    //return a float array
+
     filename = file_name;
 }
 
@@ -85,30 +78,20 @@ float * object::loadobj() {
 				inc = 0;	
 				// Set the vertex data
 				if (line[i] == 47 && line[i+1] == 47) {
-					std::cout << std::stoi(curr_face) << std::endl;
 					for (int a = x; a < (x+3); a++) {
 						vertices[a]=vert_arr[((std::stoi(curr_face)-1)*3)+inc];
-						std::cout << vert_arr[((std::stoi(curr_face)-1)*3)+inc];
 						inc++;
 					}
-					std::cout << std::endl;
-					std::cout << "---------" << std::endl;
 					x+=3;
-					//std::cout << "Vector: " << curr_face << std::endl;
 					curr_face.clear();
 				}
 				// Set the normal data
 				else if(line[i] == 32) {
-					std::cout << "NORM" << std::endl;
 					for (int a = x; a < (x+3); a++) {
 						vertices[a]=norm_arr[((std::stoi(curr_face)-1)*3)+inc];
-						std::cout << norm_arr[((std::stoi(curr_face)-1)*3)+inc];
 						inc++;
 					}
-					std::cout << std::endl;
-					std::cout << "---------" << std::endl;
 					x+=3;
-					//std::cout << "Normal: " << curr_face << std::endl;
 					curr_face.clear();
 				}
 				else if(line[i] != 32 && line[i] != 47) {
@@ -116,14 +99,10 @@ float * object::loadobj() {
 				}
 			}
 			//Account for the final Normal at the end of the line.
-			std::cout << "NORM" << std::endl;
 			for (int a = x; a < (x+3); a++) {
 				vertices[a]=norm_arr[((std::stoi(curr_face)-1)*3)+inc];
-				std::cout << norm_arr[((std::stoi(curr_face)-1)*3)+inc];
 				inc++;
 			}
-			std::cout << std::endl;
-			std::cout << "---------" << std::endl;
 			x+=3;
 			curr_face.clear();
 			faces++;
@@ -131,21 +110,21 @@ float * object::loadobj() {
     }
 
     //DEBUG
-    for (std::vector<float>::iterator it = norm_arr.begin() ; it != norm_arr.end(); ++it){
-        std::cout << (*it) << std::endl;
-    }
+//    for (std::vector<float>::iterator it = norm_arr.begin() ; it != norm_arr.end(); ++it){
+//        std::cout << (*it) << std::endl;
+//    }
 
 	std::cout << "----------" << std::endl;    
     //DEBUG
-    for (std::vector<float>::iterator it = vert_arr.begin() ; it != vert_arr.end(); ++it){
-        std::cout << (*it) << std::endl;
-    }
+//    for (std::vector<float>::iterator it = vert_arr.begin() ; it != vert_arr.end(); ++it){
+//        std::cout << (*it) << std::endl;
+//    }
     
     //DEBUG
-	std::cout << faces << std::endl;
-    for (int i = 0; i < faces * 6; i++){
-        std::cout << vertices[i] << ", ";
-    }
+//	std::cout << faces << std::endl;
+//    for (int i = 0; i < faces * 6; i++){
+//        std::cout << vertices[i] << ", ";
+//    }
 	vert_arr.clear();
 	face_arr.clear();
 	norm_arr.clear();

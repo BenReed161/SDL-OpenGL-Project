@@ -120,7 +120,6 @@ int main()
         
         glm::mat4 view = glm::lookAt(eventSystem.cameraPos, eventSystem.cameraPos + eventSystem.cameraFront, eventSystem.cameraUp);
         mainShader.setMat4("view", view);
-
         
         glBindVertexArray(VAO);
         // render the static objects 
@@ -128,16 +127,6 @@ int main()
         model = glm::scale(model, scale);
         mainShader.setMat4("model", model);
         glDrawArrays(GL_TRIANGLES, 0, faces*3);
-        // render the other cubes
-        /*
-        for(unsigned int i = 0; i < positions.size(); i++) {
-            glm::mat4 editor = glm::mat4(1.0f);
-            editor = glm::translate(editor, positions.at(i));
-            editor = glm::scale(editor, scales.at(i));
-
-            mainShader.setMat4("model", editor);
-            glDrawArrays(GL_TRIANGLES, 0, 36);
-        }*/
 
         glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
         
@@ -153,11 +142,6 @@ int main()
 
         //Send camera information to the light shader
         mainShader.setVec3("viewPos", eventSystem.cameraPos);
-
-        //debug
-        //printf("x: %f\n", cameraFront.x);
-        //printf("y: %f\n", cameraFront.y);
-        //printf("z: %f\n\n", cameraFront.z);
 
         // Rendering
         ImGui::Render();
