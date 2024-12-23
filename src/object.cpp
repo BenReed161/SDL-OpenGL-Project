@@ -114,7 +114,6 @@ float * object::loadobj() {
 //        std::cout << (*it) << std::endl;
 //    }
 
-	std::cout << "----------" << std::endl;    
     //DEBUG
 //    for (std::vector<float>::iterator it = vert_arr.begin() ; it != vert_arr.end(); ++it){
 //        std::cout << (*it) << std::endl;
