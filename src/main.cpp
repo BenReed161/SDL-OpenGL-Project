@@ -45,9 +45,6 @@ int main()
     int faces = cube_obj.face_count();
 	std::cout << "faces:" << faces << std::endl;
 
-    std::vector<glm::vec3> positions;
-    std::vector<glm::vec3> scales;
-    
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
     // bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
@@ -91,6 +88,9 @@ int main()
 
     glm::vec3 scale = glm::vec3(1.f, 1.f, 1.f);
 
+	float positions = 0;
+	ImVec4 color = ImVec4(1.f, 1.f, 1.f, 0.f);
+
     glEnable(GL_DEPTH_TEST);
 
     while (eventSystem.running){
@@ -110,7 +110,7 @@ int main()
         ImGui::NewFrame();
         
         // Show the EDITOR menu
-        //ImGui::showEditorMenu(positions, scales);
+        ImGui::showEditorMenu(positions, color);
 
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -120,6 +120,10 @@ int main()
         
         glm::mat4 view = glm::lookAt(eventSystem.cameraPos, eventSystem.cameraPos + eventSystem.cameraFront, eventSystem.cameraUp);
         mainShader.setMat4("view", view);
+    	mainShader.setVec3("lightColor", glm::vec3(color.x, color.y, color.z));
+		
+		light.x += positions;
+		mainShader.setVec3("lightPos", light);
         
         glBindVertexArray(VAO);
         // render the static objects 

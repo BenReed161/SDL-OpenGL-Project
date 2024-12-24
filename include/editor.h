@@ -8,7 +8,7 @@
 #include <vector>
 
 namespace ImGui {
-    void showEditorMenu(std::vector<glm::vec3> & positions, std::vector<glm::vec3> & scales);
+    void showEditorMenu(float & positions, ImVec4 & color);
 }
 
 #endif
